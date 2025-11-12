@@ -106,21 +106,58 @@ LAB SETUP INSTRUCTIONS
 
 import express from "express";
 const app = express();
+const PORT = 3000;
 
+// simple status endpoint so curl "/" shows server is running
+app.get("/", (req, res) => {
+  res.json({ ok: true, msg: "API is up" });
+});
 
 // create server
-
+app.listen(PORT, () => {
+  console.log(`API running at http://localhost:${PORT}`);
+});
 
 // Query params: /echo?name=Ali&age=22
+app.get("/echo", (req, res) => {
+  const { name, age } = req.query;
 
+  if (!name || !age) {
+    return res
+      .status(400)
+      .json({ ok: false, error: "name & age required" });
+  }
+
+  res.json({
+    ok: true,
+    name,
+    age,
+    msg: `Hello ${name}, you are ${age}`,
+  });
+});
 
 // Route params: /profile/First/Last
-
+app.get("/profile/:first/:last", (req, res) => {
+  const { first, last } = req.params;
+  res.json({ ok: true, fullName: `${first} ${last}` });
+});
 
 // Route param middleware example: /users/42
+app.param("userId", (req, res, next, userId) => {
+  const userIdNum = Number(userId);
 
+  if (!Number.isFinite(userIdNum) || userIdNum <= 0) {
+    return res
+      .status(400)
+      .json({ ok: false, error: "userId must be positive number" });
+  }
+
+  req.userIdNum = userIdNum;
+  next();
+});
 
 // Route params: /users/:userId route
-
-
+app.get("/users/:userId", (req, res) => {
+  res.json({ ok: true, userId: req.userIdNum });
+});
 
